@@ -110,7 +110,7 @@ public class ServiceBook {
         var book = repositoryBook.findById(bookId)
                 .orElseThrow(() -> new EntityNotFoundException(BOOK_NOT_FOUND + bookId));
         if (book.getArchived() || !book.getShareable()) {
-            throw new OperationNotPermittedException("The requested book can not be borrowed (archived/nonchargeable)");
+            throw new OperationNotPermittedException("The requested book can not be borrowed (archived/non borrowable)");
         }
         var user = (User) connectedUser.getPrincipal();
         if (!Objects.equals(book.getOwner().getId(), user.getId())) {
@@ -133,7 +133,7 @@ public class ServiceBook {
         var book = repositoryBook.findById(bookId)
                 .orElseThrow(() -> new EntityNotFoundException(BOOK_NOT_FOUND + bookId));
         if (book.getArchived() || !book.getShareable()) {
-            throw new OperationNotPermittedException("The requested book can not be borrowed (archived/nonchargeable)");
+            throw new OperationNotPermittedException("The requested book can not be borrowed (archived/non borrowable)");
         }
         var user = (User) connectedUser.getPrincipal();
         if (!Objects.equals(book.getOwner().getId(), user.getId())) {

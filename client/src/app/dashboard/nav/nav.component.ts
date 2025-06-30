@@ -5,9 +5,9 @@ import { AuthStateService } from '../../service/auth/auth-state.service';
 import { trigger, transition, style, animate } from '@angular/animations';
 
 @Component({
-  selector: 'app-home',
-  templateUrl: './home.component.html',
-  styleUrls: ['./home.component.scss'],
+  selector: 'app-nav',
+  templateUrl: './nav.component.html',
+  styleUrls: ['./nav.component.scss'],
   standalone: false,
   animations: [
     trigger('slideAnimation', [
@@ -21,7 +21,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
     ])
   ]
 })
-export class HomeComponent {
+export class NavComponent {
   user$: Observable<any>;
   isNavCollapsed = false;
   showAuthModal = false;

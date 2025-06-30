@@ -1,26 +1,23 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { HomeComponent } from './dashboard/home/home.component';
+import { NavComponent } from './dashboard/nav/nav.component';
 import { DashComponent } from './dashboard/dash/dash.component';
 import { AboutComponent } from './dashboard/about/about.component';
 import { FeedbackComponent } from './dashboard/feedback/feedback.component';
-import { LoginComponent } from './auth/login/login.component';
-import { RegisterComponent } from './auth/register/register.component';
-import { AuthGuard } from './guards/auth.guard';
+import { AuthComponent } from './dashboard/auth/auth.component';
 
 const routes: Routes = [
   {
     path: '',
-    component: HomeComponent,
+    component: NavComponent,
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard', component: DashComponent, canActivate: [AuthGuard] },
+      { path: 'dashboard', component: DashComponent },
       { path: 'about', component: AboutComponent },
-      { path: 'feedback', component: FeedbackComponent, canActivate: [AuthGuard] }
+      { path: 'feedback', component: FeedbackComponent },
+      { path: 'auth', component: AuthComponent },
     ]
   },
-  { path: 'login', component: LoginComponent },
-  { path: 'register', component: RegisterComponent },
   { path: '**', redirectTo: '' }
 ];
 

@@ -1,5 +1,6 @@
 package com.arturmolla.bookshelf.controller;
 
+import com.arturmolla.bookshelf.aspects.annotation.RateLimit;
 import com.arturmolla.bookshelf.model.common.PageResponse;
 import com.arturmolla.bookshelf.model.dto.DtoBookRequest;
 import com.arturmolla.bookshelf.model.dto.DtoBookResponse;
@@ -37,6 +38,7 @@ public class ControllerBook {
     }
 
     @GetMapping("/{book-id}")
+    @RateLimit(capacity = 5, refillTokens = 5, refillDurationMinutes = 1)
     public ResponseEntity<DtoBookResponse> findBookById(@PathVariable("book-id") Long bookId) {
         return ResponseEntity.ok(serviceBook.findBookById(bookId));
     }

@@ -12,24 +12,20 @@ import { RouterModule } from '@angular/router';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { LoginComponent } from './auth/login/login.component';
-import { RegisterComponent } from './auth/register/register.component';
 import { DashComponent } from './dashboard/dash/dash.component';
 import { FeedbackComponent } from './dashboard/feedback/feedback.component';
 import { AboutComponent } from './dashboard/about/about.component';
-import { ConfirmAccountComponent } from './auth/confirm-account/confirm-account.component';
-import { HomeComponent } from './dashboard/home/home.component';
+import { NavComponent } from './dashboard/nav/nav.component';
+import { AuthComponent } from './dashboard/auth/auth.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    LoginComponent,
-    RegisterComponent,
     DashComponent,
     FeedbackComponent,
     AboutComponent,
-    ConfirmAccountComponent,
-    HomeComponent
+    NavComponent,
+    AuthComponent
   ],
   imports: [
     BrowserModule,
