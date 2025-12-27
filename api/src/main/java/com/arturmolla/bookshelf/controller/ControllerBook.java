@@ -5,6 +5,7 @@ import com.arturmolla.bookshelf.model.common.PageResponse;
 import com.arturmolla.bookshelf.model.dto.DtoBookRequest;
 import com.arturmolla.bookshelf.model.dto.DtoBookResponse;
 import com.arturmolla.bookshelf.model.dto.DtoBorrowedBooksResponse;
+import com.arturmolla.bookshelf.model.dto.DtoRequestedBooksResponse;
 import com.arturmolla.bookshelf.service.ServiceBook;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -12,15 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
@@ -43,7 +36,6 @@ public class ControllerBook {
         return ResponseEntity.ok(serviceBook.findBookById(bookId));
     }
 
-
     @GetMapping
     public ResponseEntity<PageResponse<DtoBookResponse>> getAllBooksPaged(
             @RequestParam(name = "page", defaultValue = "0", required = false) int page,
@@ -60,6 +52,15 @@ public class ControllerBook {
             Authentication connectedUser
     ) {
         return ResponseEntity.ok(serviceBook.getAllBooksByOwner(page, size, connectedUser));
+    }
+
+    @GetMapping("/requested")
+    public ResponseEntity<PageResponse<DtoRequestedBooksResponse>> getAllRequestedBooks(
+            @RequestParam(name = "page", defaultValue = "0", required = false) int page,
+            @RequestParam(name = "size", defaultValue = "15", required = false) int size,
+            Authentication connectedUser
+    ) {
+        return ResponseEntity.ok(serviceBook.getAllRequestedBooks(page, size, connectedUser));
     }
 
     @GetMapping("/borrowed")
@@ -129,5 +130,11 @@ public class ControllerBook {
     ) {
         serviceBook.uploadBookCoverImage(file, connectedUser, bookId);
         return ResponseEntity.accepted().build();
+    }
+
+    @DeleteMapping("/{book-id}")
+    public ResponseEntity<Void> deleteBookById(@PathVariable("book-id") Long bookId, Authentication connectedUser) {
+        serviceBook.deleteBookById(bookId, connectedUser);
+        return ResponseEntity.noContent().build();
     }
 }

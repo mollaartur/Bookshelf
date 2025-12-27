@@ -25,6 +25,13 @@ public interface RepositoryBookTransactionHistory extends JpaRepository<EntityBo
     Page<EntityBookTransactionHistory> findAllReturnedBooks(Pageable pageable, Long userId);
 
     @Query("""
+            SELECT history
+            FROM EntityBookTransactionHistory history
+            WHERE history.book.owner.id = :userId
+            AND history.requested = true""")
+    Page<EntityBookTransactionHistory> findAllRequestedBooks(Pageable pageable, Long userId);
+
+    @Query("""
             SELECT (COUNT(*) > 0) AS isBorrowed
             FROM EntityBookTransactionHistory history
             WHERE history.user.id = :userId

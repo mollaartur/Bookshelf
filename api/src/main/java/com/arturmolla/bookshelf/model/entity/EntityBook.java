@@ -1,12 +1,7 @@
 package com.arturmolla.bookshelf.model.entity;
 
 import com.arturmolla.bookshelf.model.user.User;
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,10 +21,13 @@ public class EntityBook extends EntityBase {
 
     private String title;
     private String authorName;
+    @Lob
+    @Column(columnDefinition = "TEXT")
     private String synopsis;
     private String isbn;
     private String genre;
-    private String bookCover;
+    private String cover;
+    private String coverUrl;
     private Integer pageBookmark;
     private Boolean favourite = Boolean.FALSE;
     private Boolean archived = Boolean.FALSE;

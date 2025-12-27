@@ -330,4 +330,171 @@
       }
     }
   }
+
+  // Books table styles
+  .books-table-container {
+    background: white;
+    border-radius: 8px;
+    overflow-x: auto;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .books-table {
+    width: 100%;
+    border-collapse: collapse;
+    
+    thead {
+      background: #f8f9fa;
+      
+      th {
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: #333;
+        font-size: 0.9rem;
+        border-bottom: 2px solid #e0e0e0;
+        white-space: nowrap;
+      }
+    }
+    
+    tbody {
+      tr {
+        border-bottom: 1px solid #e0e0e0;
+        transition: background 0.2s ease;
+        
+        &:hover {
+          background: #f8f9fa;
+        }
+        
+        &:last-child {
+          border-bottom: none;
+        }
+      }
+      
+      td {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+        color: #555;
+      }
+    }
+  }
+
+  .table-book-cover {
+    width: 50px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f0f0f0;
+    border-radius: 4px;
+    overflow: hidden;
+    
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .table-book-emoji {
+      font-size: 1.5rem;
+    }
+  }
+
+  .book-title-cell {
+    strong {
+      color: #333;
+      font-weight: 600;
+    }
+  }
+
+  .genre-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background: #e3f2fd;
+    color: #1976d2;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+
+  .no-genre,
+  .no-isbn {
+    color: #999;
+    font-style: italic;
+  }
+
+  .isbn-text {
+    font-family: monospace;
+    font-size: 0.85rem;
+  }
+
+  .btn-request {
+    padding: 0.5rem 1rem;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background: #5568d3;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+    }
+    
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
+  .status-badges {
+    display: flex;
+    gap: 0.5rem;
+    
+    .status-badge {
+      font-size: 1.2rem;
+      line-height: 1;
+    }
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    
+    h2 {
+      margin: 0;
+    }
+    
+    .book-count {
+      color: #667eea;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+  }
+
+  .loading {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+  }
+
+  .error {
+    text-align: center;
+    padding: 1rem;
+    background: #fee;
+    border: 1px solid #fcc;
+    border-radius: 4px;
+    color: #c33;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #999;
+  }
 }

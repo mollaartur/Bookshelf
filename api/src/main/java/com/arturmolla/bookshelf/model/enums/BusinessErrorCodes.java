@@ -10,7 +10,8 @@ public enum BusinessErrorCodes {
     INCORRECT_CURRENT_PASSWORD(300, HttpStatus.BAD_REQUEST, "Current password incorrect"),
     NEW_PASSWORD_DOES_NOT_MATCH(301, HttpStatus.BAD_REQUEST, "New password does not match"),
     ACCOUNT_DISABLED(303, HttpStatus.FORBIDDEN, "User account disabled"),
-    BAD_CREDENTIALS(304, HttpStatus.FORBIDDEN, "Login and / or password is incorrect");
+    BAD_CREDENTIALS(304, HttpStatus.FORBIDDEN, "Login and / or password is incorrect"),
+    JWT_EXPIRED(305, HttpStatus.UNAUTHORIZED, "JWT token has expired");
 
     @Getter
     private final int code;

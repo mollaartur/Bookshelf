@@ -3,6 +3,7 @@ package com.arturmolla.bookshelf.config;
 import com.arturmolla.bookshelf.config.exceptions.OperationNotPermittedException;
 import com.arturmolla.bookshelf.model.dto.ExceptionResponse;
 import com.arturmolla.bookshelf.model.enums.BusinessErrorCodes;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.mail.MessagingException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -74,7 +75,7 @@ public class ConfigGlobalExceptionHandler {
                                 .builder()
                                 .businessErrorCode(BusinessErrorCodes.BAD_CREDENTIALS.getCode())
                                 .businessErrorDescription(BusinessErrorCodes.BAD_CREDENTIALS.getDescription())
-                                .error(BusinessErrorCodes.BAD_CREDENTIALS.getDescription())
+                                .error(exp.getMessage())
                                 .build()
                 );
     }
@@ -115,4 +116,19 @@ public class ConfigGlobalExceptionHandler {
                                 .build()
                 );
     }
+
+    @ExceptionHandler(ExpiredJwtException.class)
+    public ResponseEntity<ExceptionResponse> handleExpiredJwtException(ExpiredJwtException exp) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(
+                        ExceptionResponse
+                                .builder()
+                                .businessErrorCode(BusinessErrorCodes.JWT_EXPIRED.getCode())
+                                .businessErrorDescription(BusinessErrorCodes.JWT_EXPIRED.getDescription())
+                                .error(exp.getMessage())
+                                .build()
+                );
+    }
+
 }

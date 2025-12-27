@@ -5,6 +5,7 @@ import com.arturmolla.bookshelf.model.common.PageResponse;
 import com.arturmolla.bookshelf.model.dto.DtoBookRequest;
 import com.arturmolla.bookshelf.model.dto.DtoBookResponse;
 import com.arturmolla.bookshelf.model.dto.DtoBorrowedBooksResponse;
+import com.arturmolla.bookshelf.model.dto.DtoRequestedBooksResponse;
 import com.arturmolla.bookshelf.model.entity.EntityBook;
 import com.arturmolla.bookshelf.model.entity.EntityBookTransactionHistory;
 import com.arturmolla.bookshelf.model.user.User;
@@ -50,10 +51,17 @@ public class ServiceBook {
                 .orElseThrow(() -> new EntityNotFoundException(BOOK_NOT_FOUND + bookId));
     }
 
+    public PageResponse<DtoBookResponse> getAllMyBooksPaged(int page, int size, Authentication connectedUser) {
+        var user = (User) connectedUser.getPrincipal();
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
+        Page<EntityBook> books = repositoryBook.findAllUsersBooks(pageable, user.getId());
+        return mapPageToCustomWrapper(books);
+    }
+
     public PageResponse<DtoBookResponse> getAllBooksPaged(int page, int size, Authentication connectedUser) {
         var user = (User) connectedUser.getPrincipal();
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
-        Page<EntityBook> books = repositoryBook.findAllDisplayableBooks(pageable, user.getId());
+        Page<EntityBook> books = repositoryBook.findAllBooks(pageable, user.getId());
         return mapPageToCustomWrapper(books);
     }
 
@@ -113,7 +121,7 @@ public class ServiceBook {
             throw new OperationNotPermittedException("The requested book can not be borrowed (archived/non borrowable)");
         }
         var user = (User) connectedUser.getPrincipal();
-        if (!Objects.equals(book.getOwner().getId(), user.getId())) {
+        if (Objects.equals(book.getOwner().getId(), user.getId())) {
             throw new OperationNotPermittedException("You own this book!");
         }
         final boolean isAlreadyBorrowed = repositoryBookTransactionHistory.isAlreadyBorrowedByUser(bookId, user.getId());
@@ -166,14 +174,32 @@ public class ServiceBook {
         return repositoryBookTransactionHistory.save(bookTransactionHistory).getId();
     }
 
+    public PageResponse<DtoRequestedBooksResponse> getAllRequestedBooks(int page, int size, Authentication connectedUser) {
+        var user = (User) connectedUser.getPrincipal();
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
+        Page<EntityBookTransactionHistory> allRequestedBooks = repositoryBookTransactionHistory.findAllReturnedBooks(
+                pageable, user.getId()
+        );
+        return mapPageToCustomWrapperHistoriesRequested(allRequestedBooks);
+    }
 
     public void uploadBookCoverImage(MultipartFile file, Authentication connectedUser, Long bookId) {
         var book = repositoryBook.findById(bookId)
                 .orElseThrow(() -> new EntityNotFoundException(BOOK_NOT_FOUND + bookId));
         var user = (User) connectedUser.getPrincipal();
-        var bookCover = serviceFileStorage.saveFile(file, user.getId());
-        book.setBookCover(bookCover);
+        var cover = serviceFileStorage.saveFile(file, user.getId());
+        book.setCover(cover);
         repositoryBook.save(book);
+    }
+
+    public void deleteBookById(Long bookId, Authentication connectedUser) {
+        var book = repositoryBook.findById(bookId)
+                .orElseThrow(() -> new EntityNotFoundException(BOOK_NOT_FOUND + bookId));
+        var user = (User) connectedUser.getPrincipal();
+        if (!Objects.equals(book.getOwner().getId(), user.getId())) {
+            throw new OperationNotPermittedException("You can not perform this action!");
+        }
+        repositoryBook.deleteById(bookId);
     }
 
     // HELPER METHODS
@@ -205,6 +231,21 @@ public class ServiceBook {
                 books.getTotalPages(),
                 books.isFirst(),
                 books.isLast()
+        );
+    }
+
+    private PageResponse<DtoRequestedBooksResponse> mapPageToCustomWrapperHistoriesRequested(Page<EntityBookTransactionHistory> allRequestedBooks) {
+        List<DtoRequestedBooksResponse> requestedBooksResponses = allRequestedBooks.stream()
+                .map(mapperBook::toDtoRequestedBookResponse)
+                .toList();
+        return new PageResponse<>(
+                requestedBooksResponses,
+                allRequestedBooks.getNumber(),
+                allRequestedBooks.getSize(),
+                allRequestedBooks.getTotalElements(),
+                allRequestedBooks.getTotalPages(),
+                allRequestedBooks.isFirst(),
+                allRequestedBooks.isLast()
         );
     }
 }

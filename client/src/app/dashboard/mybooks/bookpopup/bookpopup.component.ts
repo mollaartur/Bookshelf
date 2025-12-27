@@ -1,6 +1,7 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { BooksService, Book } from '../../../service/book/books.service';
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
+import { NgForm } from '@angular/forms';
 
 interface ExternalBook {
   id: string;
@@ -16,6 +17,7 @@ interface ExternalBook {
     publisher?: string;
     pageCount?: number;
     categories?: string[];
+    industryIdentifiers?: { type: string; identifier: string }[];
   };
 }
 
@@ -31,18 +33,22 @@ export class BookpopupComponent implements OnInit {
   @Input() mode: 'add' | 'edit' = 'add';
   @Output() closePopup = new EventEmitter<void>();
   @Output() bookSaved = new EventEmitter<Book>();
+  @ViewChild('formRef') formRef?: NgForm;
 
   bookFormData: Partial<Book> = {};
   searchQuery: string = '';
   searchResults: ExternalBook[] = [];
   isSearching: boolean = false;
   showSearchResults: boolean = false;
-  submitting: boolean = false;
   error: string = '';
+  isCoverUrlFromApi: boolean = false;
   
   private searchSubject = new Subject<string>();
 
-  constructor(private booksService: BooksService) {}
+  constructor(
+    private booksService: BooksService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     // Set up search with debounce
@@ -88,17 +94,27 @@ export class BookpopupComponent implements OnInit {
   selectExternalBook(externalBook: ExternalBook): void {
     const volumeInfo = externalBook.volumeInfo;
     
+    const coverUrl = volumeInfo.imageLinks?.thumbnail?.replace('http://', 'https://') || 
+             volumeInfo.imageLinks?.smallThumbnail?.replace('http://', 'https://') || '';
+    
     this.bookFormData = {
       title: volumeInfo.title,
-      author: volumeInfo.authors?.join(', ') || 'Unknown Author',
-      description: volumeInfo.description || '',
-      image: volumeInfo.imageLinks?.thumbnail?.replace('http://', 'https://') || 
-             volumeInfo.imageLinks?.smallThumbnail?.replace('http://', 'https://') || ''
+      authorName: volumeInfo.authors?.join(', ') || 'Unknown Author',
+      synopsis: volumeInfo.description || '',
+      genre: volumeInfo.categories?.join(', ') || '',
+      coverUrl: coverUrl,
+      isbn: volumeInfo.industryIdentifiers ? volumeInfo.industryIdentifiers[0].identifier : '',
     };
+
+    // Mark URL as from API if it exists
+    this.isCoverUrlFromApi = !!coverUrl;
 
     this.showSearchResults = false;
     this.searchQuery = '';
     this.searchResults = [];
+    
+    // Manually trigger change detection to update button state
+    this.cdr.detectChanges();
   }
 
   clearSearch(): void {
@@ -108,12 +124,11 @@ export class BookpopupComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (!this.bookFormData.title || !this.bookFormData.author) {
+    if (!this.bookFormData.title || !this.bookFormData.authorName) {
       this.error = 'Title and Author are required';
       return;
     }
 
-    this.submitting = true;
     this.error = '';
 
     const operation = this.mode === 'edit' && this.bookToEdit?.id
@@ -122,12 +137,10 @@ export class BookpopupComponent implements OnInit {
 
     operation.subscribe({
       next: (book) => {
-        this.submitting = false;
         this.bookSaved.emit(book);
         this.close();
       },
       error: (err) => {
-        this.submitting = false;
         this.error = `Failed to ${this.mode} book. Please try again.`;
         console.error(`Error ${this.mode}ing book:`, err);
       }
@@ -140,6 +153,7 @@ export class BookpopupComponent implements OnInit {
     this.searchResults = [];
     this.showSearchResults = false;
     this.error = '';
+    this.isCoverUrlFromApi = false;
     this.closePopup.emit();
   }
 
@@ -148,9 +162,7 @@ export class BookpopupComponent implements OnInit {
   }
 
   get submitButtonText(): string {
-    if (this.submitting) {
-      return this.mode === 'edit' ? 'Updating...' : 'Adding...';
-    }
     return this.mode === 'edit' ? 'Update Book' : 'Add Book';
   }
+  
 }

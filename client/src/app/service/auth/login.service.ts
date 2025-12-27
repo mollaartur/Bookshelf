@@ -74,6 +74,10 @@ export class LoginService {
     
     const idToken = response.credential;
     
+    // Store Google token if needed for Google APIs
+    localStorage.setItem('googleToken', idToken);
+  
+
     this.http.post<AuthResponse>(this.googleUrl, { idToken })
       .subscribe({
         next: (res) => {

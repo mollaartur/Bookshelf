@@ -1,10 +1,6 @@
 package com.arturmolla.bookshelf.model.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
@@ -17,6 +13,7 @@ public class DtoBorrowedBooksResponse {
     private String title;
     private String authorName;
     private String isbn;
+    private String ownerName;
     private Double rate;
     private Boolean returned;
     private Boolean returnApproved;

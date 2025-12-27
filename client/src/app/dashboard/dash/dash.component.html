@@ -10,7 +10,7 @@
       </div>
       <div class="stat-info">
         <h3>Total Books</h3>
-        <p class="stat-number">248</p>
+        <p class="stat-number">{{ totalBooks }}</p>
       </div>
     </div>
     <div class="stat-card">
@@ -81,22 +81,62 @@
   <div class="book-sections">
     <div class="section-header">
       <h2>Recommended for you</h2>
-      <a href="#" class="view-all">View all</a>
+      <span class="book-count">{{ recommendedBooks.length }} books</span>
     </div>
     
-    <div class="book-carousel">
-      <div class="book-card">
-        <div class="book-cover">
-          <img src="assets/book1.jpg" alt="Book cover">
-          <div class="book-overlay">
-            <button class="read-now">Read Now</button>
-          </div>
-        </div>
-        <h4>The Midnight Library</h4>
-        <p class="author">Matt Haig</p>
-        <div class="genre-tag">Fiction</div>
-      </div>
-      <!-- Add more book cards -->
+    <div class="loading" *ngIf="loading">
+      <p>Loading books...</p>
+    </div>
+    
+    <div class="error" *ngIf="error">
+      <p>{{ error }}</p>
+    </div>
+    
+    <div class="books-table-container" *ngIf="!loading && !error && recommendedBooks.length">
+      <table class="books-table">
+        <thead>
+          <tr>
+            <th>Cover</th>
+            <th>Title</th>
+            <th>Author</th>
+            <th>Genre</th>
+            <th>ISBN</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let book of recommendedBooks">
+            <td>
+              <div class="table-book-cover">
+                <img *ngIf="book.cover" [src]="'data:image/jpeg;base64,' + book.cover" [alt]="book.title">
+                <img *ngIf="!book.cover && book.coverUrl" [src]="book.coverUrl" [alt]="book.title">
+                <div *ngIf="!book.cover && !book.coverUrl" class="table-book-emoji">📚</div>
+              </div>
+            </td>
+            <td>
+              <div class="book-title-cell">
+                <strong>{{ book.title }}</strong>
+              </div>
+            </td>
+            <td>{{ book.authorName }}</td>
+            <td>
+              <span class="genre-badge" *ngIf="book.genre">{{ book.genre }}</span>
+              <span class="no-genre" *ngIf="!book.genre">-</span>
+            </td>
+            <td>
+              <span class="isbn-text" *ngIf="book.isbn">{{ book.isbn }}</span>
+              <span class="no-isbn" *ngIf="!book.isbn">-</span>
+            </td>
+            <td>
+              <button class="btn-request" (click)="requestBook(book.id)">Request</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="empty-state" *ngIf="!loading && !error && !recommendedBooks.length">
+      <p>No books available.</p>
     </div>
 
     <div class="section-header">

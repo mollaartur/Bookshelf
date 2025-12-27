@@ -16,6 +16,14 @@ public interface RepositoryBook extends JpaRepository<EntityBook, Long>, JpaSpec
             FROM EntityBook book
             WHERE book.archived = false
             AND book.shareable = true
+            AND book.owner.id = :userId""")
+    Page<EntityBook> findAllUsersBooks(Pageable pageable, Long userId);
+
+    @Query("""
+            SELECT book
+            FROM EntityBook book
+            WHERE book.archived = false
+            AND book.shareable = true
             AND book.owner.id != :userId""")
-    Page<EntityBook> findAllDisplayableBooks(Pageable pageable, Long userId);
+    Page<EntityBook> findAllBooks(Pageable pageable, Long userId);
 }

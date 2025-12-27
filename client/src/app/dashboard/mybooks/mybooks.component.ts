@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { BooksService, Book } from '../../service/book/books.service';
+import { BooksService, Book, RequestedBook, PageResponse } from '../../service/book/books.service';
+import { Observable } from 'rxjs';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-mybooks',
@@ -8,12 +10,20 @@ import { BooksService, Book } from '../../service/book/books.service';
   styleUrl: './mybooks.component.scss'
 })
 export class MybooksComponent implements OnInit {
-  activeTab: 'mybooks' | 'returned' | 'rented' | 'requested' = 'mybooks';
+  activeTab: 'mybooks' | 'returned' | 'borrowed' | 'requested' = 'mybooks';
   
   myBooks: Book[] = [];
   returnedBooks: Book[] = [];
-  rentedBooks: Book[] = [];
-  requestedBooks: Book[] = [];
+  borrowedBooks: Book[] = [];
+  requestedBooks: RequestedBook[] = [];
+  
+  // Pagination properties
+  currentPage: number = 0;
+  pageSize: number = 15;
+  totalPages: number = 0;
+  totalElements: number = 0;
+  isFirstPage: boolean = true;
+  isLastPage: boolean = true;
   
   loading: boolean = false;
   error: string = '';
@@ -25,23 +35,30 @@ export class MybooksComponent implements OnInit {
     this.loadData();
   }
 
-  switchTab(tab: 'mybooks' | 'returned' | 'rented' | 'requested'): void {
+  switchTab(tab: 'mybooks' | 'returned' | 'borrowed' | 'requested'): void {
     this.activeTab = tab;
+    this.currentPage = 0; // Reset to first page when switching tabs
     this.loadData();
   }
 
-  loadData(): void {
+  loadData(page: number = 0): void {
     this.loading = true;
     this.error = '';
+    this.currentPage = page;
 
-    const serviceCall = this.getServiceCall();
+    const serviceCall = this.getServiceCall(page);
     
     serviceCall.subscribe({
-      next: (data) => {
-        this.updateActiveTabData(data);
+      next: (response: PageResponse<Book | RequestedBook>) => {
+        const filteredContent = this.filterContentByTab(response.content);
+        this.updateActiveTabData(filteredContent);
+        this.totalPages = response.totalPages;
+        this.totalElements = response.totalElement;
+        this.isFirstPage = response.first;
+        this.isLastPage = response.last;
         this.loading = false;
       },
-      error: (err) => {
+      error: (err: any) => {
         this.error = 'Failed to load data. Please try again.';
         this.loading = false;
         console.error('Error loading data:', err);
@@ -49,34 +66,41 @@ export class MybooksComponent implements OnInit {
     });
   }
 
-  private getServiceCall() {
+  private getServiceCall(page: number): Observable<PageResponse<Book | RequestedBook>> {
     switch (this.activeTab) {
       case 'mybooks':
-        return this.booksService.getMyBooks();
+        return this.booksService.getMyBooks(page, this.pageSize);
       case 'returned':
-        return this.booksService.getReturnedBooks();
-      case 'rented':
-        return this.booksService.getRentedBooks();
+        return this.booksService.getReturnedBooks(page, this.pageSize);
+      case 'borrowed':
+        return this.booksService.getBorrowedBooks(page, this.pageSize);
       case 'requested':
-        return this.booksService.getRequestedBooks();
+        return this.booksService.getRequestedBooks(page, this.pageSize);
       default:
-        return this.booksService.getMyBooks();
+        return this.booksService.getMyBooks(page, this.pageSize);
     }
   }
 
-  private updateActiveTabData(data: Book[]): void {
+  private filterContentByTab(content: (Book | RequestedBook)[]): Book[] | RequestedBook[] {
+    if (this.activeTab === 'requested') {
+      return content as RequestedBook[];
+    }
+    return content as Book[];
+  }
+
+  private updateActiveTabData(data: Book[] | RequestedBook[]): void {
     switch (this.activeTab) {
       case 'mybooks':
-        this.myBooks = data;
+        this.myBooks = data as Book[];
         break;
       case 'returned':
-        this.returnedBooks = data;
+        this.returnedBooks = data as Book[];
         break;
-      case 'rented':
-        this.rentedBooks = data;
+      case 'borrowed':
+        this.borrowedBooks = data as Book[];
         break;
       case 'requested':
-        this.requestedBooks = data;
+        this.requestedBooks = data as RequestedBook[];
         break;
     }
   }
@@ -86,26 +110,87 @@ export class MybooksComponent implements OnInit {
     return new Date(dueDate) < new Date();
   }
 
-  approveRequest(bookId: string): void {
+  // Pagination methods
+  goToPage(page: number): void {
+    if (page >= 0 && page < this.totalPages) {
+      this.loadData(page);
+    }
+  }
+
+  nextPage(): void {
+    if (!this.isLastPage) {
+      this.loadData(this.currentPage + 1);
+    }
+  }
+
+  previousPage(): void {
+    if (!this.isFirstPage) {
+      this.loadData(this.currentPage - 1);
+    }
+  }
+
+  get pageNumbers(): number[] {
+    return Array.from({ length: this.totalPages }, (_, i) => i);
+  }
+
+  approveRequest(bookId: number): void {
     this.booksService.approveRequest(bookId).subscribe({
       next: () => {
-        this.loadData();
+        this.loadData(this.currentPage);
       },
-      error: (err) => {
+      error: (err: any) => {
         this.error = 'Failed to approve request.';
         console.error('Error approving request:', err);
       }
     });
   }
 
-  rejectRequest(bookId: string): void {
+  rejectRequest(bookId: number): void {
     this.booksService.rejectRequest(bookId).subscribe({
       next: () => {
-        this.loadData();
+        this.loadData(this.currentPage);
       },
-      error: (err) => {
+      error: (err: any) => {
         this.error = 'Failed to reject request.';
         console.error('Error rejecting request:', err);
+      }
+    });
+  }
+
+  deleteBook(bookId: number): void {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.booksService.deleteBook(bookId).subscribe({
+          next: () => {
+            Swal.fire({
+              title: 'Deleted!',
+              text: 'Your book has been deleted.',
+              icon: 'success',
+              timer: 2000,
+              showConfirmButton: false
+            });
+            this.loadData(this.currentPage);
+          },
+          error: (err: any) => {
+            this.error = 'Failed to delete book.';
+            Swal.fire({
+              title: 'Error!',
+              text: 'Failed to delete the book. Please try again.',
+              icon: 'error',
+              confirmButtonText: 'OK'
+            });
+            console.error('Error deleting book:', err);
+          }
+        });
       }
     });
   }

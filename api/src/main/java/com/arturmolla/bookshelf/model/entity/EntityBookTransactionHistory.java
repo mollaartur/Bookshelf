@@ -30,4 +30,6 @@ public class EntityBookTransactionHistory extends EntityBase {
 
     private Boolean returned = Boolean.FALSE;
     private Boolean returnApproved = Boolean.FALSE;
+    private Boolean requested = Boolean.TRUE;
+    private Boolean requestApproved = Boolean.FALSE;
 }
